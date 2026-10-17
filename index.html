@@ -139,6 +139,7 @@
     <h2>Contents</h2>
     <ul>
         <li><a href="#git-commit-push">Git: Staging, Committing, and Pushing</a></li>
+        <li><a href="#update-this-journal">How to update this journal</a></li>
         <li><span class="future">Hermes: Email sorting and processing (planned)</span></li>
         <li><span class="future">More entries to come...</span></li>
     </ul>
@@ -211,6 +212,31 @@ git push</code></pre>
         <li>LaTeX workflows and moderncv</li>
         <li>Git branching and merging (beyond the basics above)</li>
     </ul>
+</div>
+
+<div class="entry" id="update-this-journal">
+    <div class="entry-meta">Date: 2025-10-16 &nbsp;|&nbsp; Tags: <span class="tag">git</span> <span class="tag">github</span> <span class="tag">this-journal</span></div>
+    <h2>How to update this journal</h2>
+
+    <p>This journal is a single HTML file (<code>index.html</code>) in a Git repository on GitHub. To add or edit entries:</p>
+
+    <h3>1. Edit the file</h3>
+    <p>Open <code>~/learning-journal/index.html</code> in any text editor. To add a new entry, copy the template block (marked with <code>&lt;!-- ENTRY TEMPLATE</code> in the HTML comments), paste it where you want it, and fill in the content. Update the table of contents at the top of the page if needed.</p>
+
+    <h3>2. Save and push</h3>
+    <pre><code>cd ~/learning-journal
+git add .
+git commit -m "Add entry: [topic name]"
+git push</code></pre>
+
+    <p>That's it. The live page at <a href="https://tfrei59.github.io/learning-journal/">tfrei59.github.io/learning-journal</a> updates automatically within a minute or so after pushing.</p>
+
+    <h3>3. View locally</h3>
+    <p>To preview changes before pushing, open the file in a browser:</p>
+    <pre><code>xdg-open ~/learning-journal/index.html</code></pre>
+
+    <h3>Who can edit this?</h3>
+    <p>The repo is public, which means anyone can <em>see</em> it. But only I (the owner) can push changes directly. Other people can fork it or submit pull requests (proposed changes I'd review), but they cannot modify this version directly. Public = visible, not editable by others.</p>
 </div>
 
 <hr>
