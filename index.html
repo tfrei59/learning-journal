@@ -139,8 +139,8 @@
     <h2>Contents</h2>
     <ul>
         <li><a href="#git-commit-push">Git: Staging, Committing, and Pushing</a></li>
+        <li><a href="#hey-email-triage">Hermes + HEY Email: Inbox triage and ongoing management</a></li>
         <li><a href="#update-this-journal">How to update this journal</a></li>
-        <li><span class="future">Hermes: Email sorting and processing (planned)</span></li>
         <li><span class="future">More entries to come...</span></li>
     </ul>
 </div>
@@ -194,10 +194,90 @@ git push</code></pre>
     </ul>
 </div>
 
-<div class="entry" id="email-processing-planned">
-    <div class="entry-meta">Date: 2025-10-16 &nbsp;|&nbsp; Status: planned</div>
-    <h2>Hermes: Email sorting and processing (planned)</h2>
-    <p class="future">Recently asked Hermes (Wendell) to help with sorting and processing email but never actually executed it. To do: document the workflow here once it's set up and run successfully.</p>
+<div class="entry" id="hey-email-triage">
+    <div class="entry-meta">Date: 2026-10-18 &nbsp;|&nbsp; Tags: <span class="tag">hermes</span> <span class="tag">hey</span> <span class="tag">email</span> <span class="tag">automation</span></div>
+    <h2>Hermes + HEY Email: Inbox triage and ongoing management</h2>
+
+    <p>Set up Hermes (Wendell) to manage my HEY email account using the <code>hey</code> CLI. This entry documents what was configured, the triage workflow, and the automation put in place for ongoing management.</p>
+
+    <h3>What was set up</h3>
+    <ul>
+        <li><strong>HEY MCP server</strong> — registered <code>hey mcp</code> as a stdio MCP server in <code>~/.hermes/config.yaml</code> under <code>mcp_servers.hey</code>. Provides 7 tools (mail, contacts, todos, calendars, journals, etc.) that Hermes can call directly. Requires restarting Hermes to discover the tools.</li>
+        <li><strong>HEY CLI auth</strong> — confirmed via <code>hey auth status</code>. OAuth token stored in keyring, auto-refreshes. Valid through Oct 31, 2026.</li>
+        <li><strong><code>hey-email</code> skill</strong> — saved the triage workflow as a Hermes skill so Wendell repeats the same categorization logic every time. Contains sender classification reference (which senders go to Feed, Paper Trail, Set Aside, Reply Later, or stay in Imbox).</li>
+        <li><strong>Cron: inbox monitor</strong> — a no-agent cron job (<code>hey-inbox-check.sh</code>) runs every 4 hours, checks the imbox count, and sends a Telegram alert when it crosses 50 threads. Prompts me to say "triage my inbox" to Wendell.</li>
+        <li><strong>Cron: camera donation reminder</strong> — a no-agent cron job (<code>camera-donation-reminder.sh</code>) runs daily at 5pm, checks if the "Ship cameras" event is still on my HEY calendar, and if so sends a reminder email to tom@ridgend.org with shipping details. Stops automatically once the event is deleted (after I confirm shipment).</li>
+    </ul>
+
+    <h3>The triage workflow (HEY-native inbox zero)</h3>
+    <ol>
+        <li><strong>Fetch all imbox threads:</strong> <code>hey box view imbox --all --json</code> — parse <code>data.postings[]</code> for id, sender, subject, date, topic_id.</li>
+        <li><strong>Categorize by sender + subject:</strong>
+            <ul>
+                <li><strong>The Feed</strong> (<code>hey move &lt;ids&gt; --to feed</code>): newsletters, content marketing, Substack, Patreon creator updates, recurring content senders (Daily Stoic, TLDR, Peter Attia, Huberman Lab, Ted Gioia, Marbin, Rick Beato, etc.)</li>
+                <li><strong>Paper Trail</strong> (<code>hey move &lt;ids&gt; --to papertrail</code>): receipts, bills, bank statements, payments, shipping, security alerts, verification codes, tax docs, subscription confirmations</li>
+                <li><strong>Set Aside</strong> (<code>hey move &lt;ids&gt; --to setaside</code>): event invitations, community/faith, self-sent reference, meeting minutes, things to keep but not act on now</li>
+                <li><strong>Reply Later</strong> (<code>hey move &lt;ids&gt; --to replylater</code>): personal emails from real people needing a response, professional/counseling emails</li>
+                <li><strong>Imbox (keep)</strong>: ambiguous or needs direct attention — left for one-by-one walkthrough</li>
+            </ul>
+        </li>
+        <li><strong>Batch move</strong> in groups of ~50 IDs per <code>hey move</code> call. Moving to any box but Imbox marks threads seen automatically.</li>
+        <li><strong>Walk through remaining items</strong> one by one using <code>hey thread read &lt;topic_id&gt; --markdown</code>. Wendell presents sender, subject, date, summary, and suggested action. I decide: reply, set aside, paper trail, mark seen, or keep.</li>
+    </ol>
+
+    <h3>Key commands</h3>
+    <pre><code># Fetch all imbox threads
+hey box view imbox --all --json
+
+# Read a thread (uses topic_id, NOT posting id)
+hey thread read &lt;topic-id&gt; --markdown
+
+# Move threads to a box
+hey move &lt;id1&gt; &lt;id2&gt; ... --to feed|papertrail|setaside|replylater
+
+# Mark threads as seen
+hey seen &lt;id1&gt; &lt;id2&gt; ...
+
+# Search email
+hey search "query" --in imbox --date last_7_days --markdown
+
+# Check calendar
+hey event day [date]
+
+# Compose a new email
+hey compose --to email@example.com --subject "Subject" -m "Message body"
+
+# Reply to a thread
+hey reply &lt;thread-id&gt; -m "Reply message"
+
+# Create a calendar event
+hey event add "Title" --all-day --starts-on 2026-10-20 --notes "Details" --repeat every_day</code></pre>
+
+    <h3>First triage session (Oct 18, 2026)</h3>
+    <p>Started with 1,030 threads in the Imbox. Wendell categorized and batch-moved:</p>
+    <ul>
+        <li><strong>462 → The Feed</strong> (newsletters and content)</li>
+        <li><strong>448 → Paper Trail</strong> (receipts, bills, account notifications)</li>
+        <li><strong>74 → Set Aside</strong> (events, community, self-sent reference)</li>
+        <li><strong>19 → Reply Later</strong> (personal/professional emails needing response)</li>
+        <li><strong>26 remaining</strong> — walked through one by one, each marked seen, moved to a box, or replied to</li>
+    </ul>
+    <p>Two replies were sent during the walkthrough:</p>
+    <ul>
+        <li><strong>Teri Lantz (PLYC)</strong> — confirmed I can't attend the Nov 12 board meeting/holiday social (son's wedding that weekend). Approved the minutes as written.</li>
+        <li><strong>Michael Raso (Film Photography Project)</strong> — confirmed I'm shipping the 35mm & 120mm cameras soon, using the USPS address.</li>
+    </ul>
+
+    <h3>Open action item</h3>
+    <p><strong>Ship cameras to Film Photography Project.</strong> A daily calendar event (all-day, repeating) was created starting Oct 20 with all shipping info in the notes. A cron job sends a daily 5pm email to tom@ridgend.org until I confirm shipment — then Wendell deletes the event and the reminders stop.</p>
+    <ul>
+        <li>USPS: Film Photography Podcast / Attn: Donations, PO Box 264, Fair Lawn, NJ 07410</li>
+        <li>UPS/FedEx: 20-10 Maple Ave, Bldg 35D, Fair Lawn, NJ 07410</li>
+        <li>Contact: Michael Raso (michael.raso@filmphotographyproject.com)</li>
+    </ul>
+
+    <h3>HIPAA note</h3>
+    <p>HEY is a cloud email provider. Don't route patient-specific PHI through these tools unless it's something I would normally send via that email account. Routine triage (categorizing, moving, marking seen) is fine.</p>
 </div>
 
 <div class="entry" id="future-entries">
